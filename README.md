@@ -23,4 +23,4 @@ sim.run()
 ```
 
 # Credits
-The overall physics logic comes from *Stephen Gruppetta* and his article on [Python Coding Book](Simulating Orbiting Planets in a Solar System Using Python).
+The overall physics logic comes from *Stephen Gruppetta* and his article on ["Python Coding Book"](Simulating Orbiting Planets in a Solar System Using Python).
