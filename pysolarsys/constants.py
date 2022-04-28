@@ -1,4 +1,3 @@
-from code import interact
 BODY_MIN_DISPLAY_SIZE = 20
 BODY_MAX_DISPLAY_SIZE = 80
 BODY_DISPLAY_LOG_BASE = 1.1
