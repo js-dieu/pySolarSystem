@@ -1,7 +1,8 @@
+import copy
 import math
 import uuid
 from typing import List
-
+from pysolarsys.constants import BODY_DISPLAY_LOG_BASE, BODY_MIN_DISPLAY_SIZE, BODY_MAX_DISPLAY_SIZE
 from pysolarsys.types import BodyType, Vector, Point
 
 counter = 0
@@ -18,7 +19,8 @@ class Body:
                  velocity: Vector, body_type: BodyType) -> None:
         self.__name: str = name
         self.__mass: float = mass
-        self.__radius: float = max(math.log(self.__mass, 1.1), 10)
+        self.__radius: float = min(max(math.log(self.__mass, BODY_DISPLAY_LOG_BASE), BODY_MIN_DISPLAY_SIZE),
+                                   BODY_MAX_DISPLAY_SIZE)
         self.__vel: Vector = velocity
         self.__pos: Point = initial_position
         self.__type: BodyType = body_type
@@ -92,7 +94,15 @@ class Body:
 class SolarSystem:
     def __init__(self) -> None:
         self.__bodies: List[Body] = []
-    
+        self.__initial_conditions: List[Body] = []
+
+    @property
+    def initial_conditions(self) -> List[Body]:
+        return self.__initial_conditions
+
+    def capture_initial_conditions(self) -> None:
+        self.__initial_conditions = copy.deepcopy(self.__bodies)
+
     def add(self, body: Body) -> 'SolarSystem':
         self.__bodies.append(body)
         return self

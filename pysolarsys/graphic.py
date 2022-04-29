@@ -1,11 +1,12 @@
 import itertools
 import turtle
+from pysolarsys.constants import PLANETS_COLORS, SUPER_GIANT_COLOR, GIANT_COLOR, WHITE_DWARF_COLOR, STAR_COLOR
 from pysolarsys.physics import SolarSystem
 from pysolarsys.types import Vector, WindowRange, BodyType, Point
 
-
 stop_requested = False
 pause_requested = False
+save_requested = False
 
 
 def stop_request():
@@ -16,6 +17,11 @@ def stop_request():
 def toggle_pause():
     global pause_requested
     pause_requested = not pause_requested
+
+
+def save_simulation():
+    global save_requested
+    save_requested = True
 
 
 class DisplayInfo:
@@ -41,12 +47,7 @@ class DisplayInfo:
 
 
 class BodyView(turtle.Turtle):
-    Planet_Colors = itertools.cycle([(181, 167, 167), (227, 187, 118), (59, 93, 56), (226, 123, 88), (200, 139, 58),
-                                     (197, 171, 110), (213, 251, 252), (62, 84, 232), (255, 241, 213)])
-    Sun_Color = (0, 0, 220)
-    White_Dwarf_Color = (240, 240, 240)
-    Giant_Color = (251, 189, 20)
-    Super_Giant_Color = (255, 87, 79)
+    Planet_Colors = itertools.cycle(PLANETS_COLORS)
 
     def __init__(self, name: str, radius: float, position: Vector, body_type: BodyType) -> None:
         super().__init__()
@@ -56,13 +57,13 @@ class BodyView(turtle.Turtle):
         if body_type.value == BodyType.PLANET.value:
             self.color(next(BodyView.Planet_Colors))
         elif body_type.value == BodyType.STAR:
-            self.color(*BodyView.Sun_Color)
+            self.color(*STAR_COLOR)
         elif body_type.value == BodyType.WHITE_DWARF_STAR:
-            self.color(*BodyView.White_Dwarf_Color)
+            self.color(*WHITE_DWARF_COLOR)
         elif body_type.value == BodyType.SUPER_GIANT_STAR:
-            self.color(*BodyView.Super_Giant_Color)
+            self.color(*SUPER_GIANT_COLOR)
         elif body_type.value == BodyType.GIANT_STAR:
-            self.color(*BodyView.Giant_Color)
+            self.color(*GIANT_COLOR)
         else:
             self.color((0, 255, 0))
         self.penup()
@@ -102,6 +103,16 @@ class Display:
         global pause_requested
         return pause_requested
 
+    @staticmethod
+    def save_simulation() -> bool:
+        global save_requested
+        return save_requested
+
+    @staticmethod
+    def reset_save_simulation_marker():
+        global save_requested
+        save_requested = False
+
     def toggle_velocities(self) -> None:
         self.__display_info.velocities = not self.__display_info.velocities
 
@@ -112,8 +123,10 @@ class Display:
         self.__display_info.positions = not self.__display_info.positions
 
     def init(self, simulator: SolarSystem):
+        turtle.onkey(save_simulation, 's')
         turtle.onkey(toggle_pause, 'p')
         turtle.onkey(stop_request, 'q')
+
         for body in simulator:
             self.__bodies[body.oid] = BodyView(body.name, body.radius, body.position, body.body_type)
             self.__bodies[body.oid].draw(body.position)

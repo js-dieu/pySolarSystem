@@ -34,6 +34,7 @@ class BodyType(int, enum.Enum):
 class Vector:
     def __init__(self, x: float, y: float, z: float = 0) -> None:
         self.__p = x, y, z
+        self.__l = None
         self.__n = x, y, z
         self._norm()
     
@@ -51,6 +52,7 @@ class Vector:
     
     def set(self, x: float, y: float, z: float = 0) -> 'Vector':
         self.__p = x, y, z
+        self.__l = None
         self._norm()
         return self
 
@@ -64,7 +66,9 @@ class Vector:
         return f'pysolarsys.types.Vector <{self.__p[0]}, {self.__p[1]}, {self.__p[2]}>'
 
     def length(self) -> float:
-        return math.sqrt(sum((i * i for i in self.__p)))
+        if self.__l is None:
+            self.__l = math.sqrt(sum((i * i for i in self.__p)))
+        return self.__l
 
     def _norm(self):
         length = self.length()
