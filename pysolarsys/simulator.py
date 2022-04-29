@@ -2,6 +2,7 @@ import json
 import pathlib
 import turtle
 from typing import Tuple
+from pysolarsys.constants import SIMULATION_FILE
 from pysolarsys.physics import Body, SolarSystem
 from pysolarsys.graphic import Display
 from pysolarsys.types import BodyType, Point, Vector
@@ -14,8 +15,45 @@ class Simulator:
         self.__display = Display(display_size[0], display_size[1])
         self.__simulation_name = name
 
+    def load(self, simulation_name: str, file_path: pathlib.Path | None= None):
+        p = file_path or pathlib.Path.cwd() / SIMULATION_FILE
+        if not p.exists():
+            raise FileNotFoundError(f'{p.as_posix()} cannot be found')
+        try:
+            all_data = json.loads(p.read_text(encoding='utf-8'))
+        except json.JSONDecodeError:
+            raise ValueError(f'{p.as_posix()} cannot be read as JSON')
+        except OSError as err:
+            raise ValueError(f'Cannot read from file {p.as_posix()}: {err}')
+
+        if 'simulations' not in all_data:
+            raise ValueError('Bad file format')
+
+        if simulation_name not in all_data['simulations']:
+            raise ValueError(f'Unknown simulation {simulation_name}')
+
+        simu = all_data['simulations'][simulation_name]
+
+        for planet in simu['planets']:
+            self.add_planet(planet['name'], planet['mass'],
+                            Point(*planet['initial_position']), Vector(*planet['velocity']))
+        for sun in simu['suns']:
+            body_type = BodyType.from_value(sun['body_type'])
+            if BodyType.STAR == body_type:
+                self.add_sun(sun['name'], sun['mass'], Point(*sun['initial_position']), Vector(*sun['velocity']))
+            elif BodyType.GIANT_STAR == body_type:
+                self.add_giant_star(sun['name'], sun['mass'], Point(*sun['initial_position']), Vector(*sun['velocity']))
+            elif BodyType.SUPER_GIANT_STAR == body_type:
+                self.add_super_giant_star(sun['name'], sun['mass'],
+                                          Point(*sun['initial_position']), Vector(*sun['velocity']))
+            elif BodyType.WHITE_DWARF_STAR == body_type:
+                self.add_white_dwarf(sun['name'], sun['mass'],
+                                     Point(*sun['initial_position']), Vector(*sun['velocity']))
+
+        self.__simulation_name = simulation_name
+
     def save(self):
-        p = pathlib.Path.cwd() / f'{self.__simulation_name}.pysolarsim.json'
+        p = pathlib.Path.cwd() / SIMULATION_FILE
         if not p.exists():
             p.touch()
         data = dict(planets=[], suns=[])
@@ -36,7 +74,6 @@ class Simulator:
             all_data['simulations'][self.__simulation_name] = data
             with p.open('w') as f:
                 f.write(json.dumps(all_data))
-        print(f'file written at {p.as_posix()}')
 
     def add_sun(self, name: str, mass: float, position: Point, velocity: Vector):
         sun = Body(name, mass, initial_position=position, velocity=velocity, body_type=BodyType.STAR)
@@ -76,4 +113,5 @@ class Simulator:
             self.__display.draw_and_listen(self.__solar_system)
             stop = self.__max_iter is not None and it > self.__max_iter
             stop = stop or self.__display.stop_requested()
+        self.__display.deinit()
         turtle.bye()

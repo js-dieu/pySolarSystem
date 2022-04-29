@@ -122,6 +122,11 @@ class Display:
     def toggle_positions(self) -> None:
         self.__display_info.positions = not self.__display_info.positions
 
+    def deinit(self):
+        turtle.onkey(None, 's')
+        turtle.onkey(None, 'p')
+        turtle.onkey(None, 'q')
+
     def init(self, simulator: SolarSystem):
         turtle.onkey(save_simulation, 's')
         turtle.onkey(toggle_pause, 'p')
